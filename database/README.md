@@ -1,10 +1,24 @@
 # database/
 
-Holds the PostgreSQL/Supabase schema as plain, version-controlled SQL —
-the full `schema.sql` (tables, foreign keys, indexes, constraints),
-`policies.sql` (Row Level Security) and `seed.sql` land in **Step 4**.
+Plain, version-controlled SQL — the source of truth for the schema, not the
+Supabase dashboard.
 
-Migrations will be added incrementally under `database/migrations/` as
-`NNNN_description.sql`, applied via the Supabase CLI (`supabase db push`)
-so schema history stays reviewable in git rather than only living inside
-the Supabase dashboard.
+- `schema.sql` — 14 farm-scoped tables + a `roles` reference table. FKs,
+  `check` constraints and indexes live here, not just in app-level validation.
+- `functions.sql` — `current_farm_id()`/`current_role()` helpers used by
+  every RLS policy, `handle_new_user` (creates a `public.users` row the
+  instant someone verifies their first OTP), `set_updated_at` triggers, and
+  the `complete_owner_profile` RPC the app calls from the "complete profile"
+  screen.
+- `policies.sql` — Row Level Security for every table. This is what actually
+  enforces the multi-tenant boundary and the owner/supervisor/labour
+  permission matrix — not app-level query filtering.
+- `seed.sql` — deliberately does *not* insert fake farms/users (there's no
+  safe way to fabricate an `auth.users` row from SQL); it documents how to
+  seed realistic data once you've signed up for real in a dev project.
+- `migrations/0001_init.sql` — the frozen, applied snapshot of the three
+  files above, in the form the Supabase CLI actually runs
+  (`npx supabase db push`). Once applied anywhere, a migration file is never
+  edited — schema changes land as a new `0002_*.sql`, with `schema.sql` /
+  `functions.sql` / `policies.sql` updated to match so they stay the
+  reviewable "current state" reference.

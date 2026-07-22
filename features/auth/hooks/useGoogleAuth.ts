@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useMutation } from "@tanstack/react-query";
 import { ENV } from "@constants/config";
 import { signInWithGoogleIdToken } from "@services/supabase/authService";
+import { fetchMyProfile } from "@services/supabase/profileService";
 import { useAuthStore } from "@services/state/authStore";
 import { logger } from "@utils/logger";
 
@@ -21,6 +22,7 @@ WebBrowser.maybeCompleteAuthSession();
  */
 export function useGoogleAuth() {
   const setSession = useAuthStore((s) => s.setSession);
+  const setProfile = useAuthStore((s) => s.setProfile);
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     iosClientId: ENV.googleIosClientId || undefined,
@@ -29,8 +31,13 @@ export function useGoogleAuth() {
   });
 
   const exchangeMutation = useMutation({
-    mutationFn: (idToken: string) => signInWithGoogleIdToken(idToken),
-    onSuccess: (session) => setSession(session),
+    mutationFn: async (idToken: string) => {
+      const session = await signInWithGoogleIdToken(idToken);
+      setSession(session);
+      const profile = await fetchMyProfile(session.user.id);
+      setProfile(profile);
+      return session;
+    },
     onError: (error) => logger.error("Google sign-in exchange failed", error),
   });
 

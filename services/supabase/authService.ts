@@ -1,6 +1,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./client";
 import { PHONE_COUNTRY_CODE } from "@constants/config";
+import type { ProfileRow } from "./profileService";
 
 /**
  * Thin, framework-free wrapper around `supabase.auth.*`. No React here —
@@ -60,22 +61,19 @@ export async function signInWithGoogleIdToken(idToken: string): Promise<Session>
   return data.session;
 }
 
-/** Persists the user's display name + farm name so `isProfileComplete`
- * passes. Also stamps the default "owner" role for self-registered users —
- * supervisor/labour accounts will instead be created via an invite flow
- * once team management ships (Step 13), which will set role explicitly. */
-export async function completeProfile(params: { fullName: string; farmName: string }): Promise<Session> {
-  const { data, error } = await supabase.auth.updateUser({
-    data: {
-      fullName: params.fullName,
-      farmName: params.farmName,
-      role: "owner",
-    },
+/** Creates the caller's farm and links their `public.users` row to it, via
+ * the `complete_owner_profile` Postgres function (database/functions.sql).
+ * Self-registered users always become the `owner` of a brand-new farm;
+ * supervisor/labour accounts are created via an invite flow instead, once
+ * team management ships (Step 13), which will set their role explicitly. */
+export async function completeProfile(params: { fullName: string; farmName: string }): Promise<ProfileRow> {
+  const { data, error } = await supabase.rpc("complete_owner_profile", {
+    p_full_name: params.fullName,
+    p_farm_name: params.farmName,
   });
   if (error) throw error;
-  const { data: sessionData } = await supabase.auth.getSession();
-  if (!sessionData.session) throw new Error("No active session after completing profile.");
-  return sessionData.session;
+  if (!data) throw new Error("Profile completion succeeded but no profile was returned.");
+  return data;
 }
 
 export async function signOut(): Promise<void> {

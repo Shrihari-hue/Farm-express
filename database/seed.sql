@@ -1,0 +1,40 @@
+-- =============================================================================
+-- Farm Express — Seed data (Step 4)
+-- =============================================================================
+-- `roles` is the only table safe to seed blindly (schema.sql already does
+-- it via `insert ... on conflict do nothing`). Everything else — farms,
+-- users, workers — is intentionally NOT seeded here:
+--
+--   * `public.users` rows are created by the `handle_new_user` trigger the
+--     moment a real `auth.users` row exists, which only Supabase Auth can
+--     create (there's no safe way to fabricate a fake authenticated user
+--     from plain SQL).
+--   * `farms` rows are created by the `complete_owner_profile` RPC, tied to
+--     `auth.uid()` of whoever calls it.
+--
+-- To get realistic demo data for local development:
+--   1. Run the app against a local/dev Supabase project and sign up for
+--      real through the Email OTP flow (Inbucket captures the email in
+--      local dev — see `supabase status` for its URL).
+--   2. Complete the profile screen to create your farm.
+--   3. Grab your new farm's id:
+--        select id from public.farms order by created_at desc limit 1;
+--   4. Use the snippet below (swap in that id) to backfill a handful of
+--      workers/stock/sales rows for screenshots and manual testing.
+-- =============================================================================
+
+-- Example (edit the farm_id + a real recorder user id from public.users
+-- before running):
+--
+-- insert into public.workers (farm_id, type, name, phone, village, daily_wage, status)
+-- values
+--   ('00000000-0000-0000-0000-000000000000', 'casual', 'Suresh Kumar', '9876543210', 'Kadaba', 450, 'active'),
+--   ('00000000-0000-0000-0000-000000000000', 'permanent', 'Lakshmi Devi', '9876500000', null, null, 'active');
+--
+-- update public.workers set monthly_salary = 12000
+--   where name = 'Lakshmi Devi' and farm_id = '00000000-0000-0000-0000-000000000000';
+--
+-- insert into public.stock (farm_id, category, name, unit, quantity, added_by, updated_by)
+-- values
+--   ('00000000-0000-0000-0000-000000000000', 'coconut_bags', 'Coconut Bags', 'bags', 120,
+--    '00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000');

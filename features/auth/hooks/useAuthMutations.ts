@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import * as authService from "@services/supabase/authService";
+import { fetchMyProfile } from "@services/supabase/profileService";
 import { useAuthStore } from "@services/state/authStore";
 import { logger } from "@utils/logger";
 
@@ -19,12 +20,15 @@ export function useSendPhoneOtp() {
   });
 }
 
-/** Verifies the 6-digit code and, on success, hydrates the auth store —
- * `app/index.tsx` reacts to `isAuthenticated`/`needsProfileCompletion`
- * changing and redirects automatically, so callers just need to await
- * this and let navigation happen on its own. */
+/**
+ * Verifies the 6-digit code, hydrates the session, and loads the caller's
+ * `public.users` row so `needsProfileCompletion` is correct by the time this
+ * resolves — callers can safely navigate immediately after `await`ing it
+ * instead of waiting on the background `onAuthStateChange` listener.
+ */
 export function useVerifyOtp() {
   const setSession = useAuthStore((s) => s.setSession);
+  const setProfile = useAuthStore((s) => s.setProfile);
 
   return useMutation({
     mutationFn: async (params: { method: "email" | "phone"; identifier: string; otp: string }) => {
@@ -32,20 +36,22 @@ export function useVerifyOtp() {
         params.method === "email"
           ? await authService.verifyEmailOtp(params.identifier, params.otp)
           : await authService.verifyPhoneOtp(params.identifier, params.otp);
+      setSession(session);
+      const profile = await fetchMyProfile(session.user.id);
+      setProfile(profile);
       return session;
     },
-    onSuccess: (session) => setSession(session),
     onError: (error) => logger.error("verifyOtp failed", error),
   });
 }
 
 export function useCompleteProfile() {
-  const setSession = useAuthStore((s) => s.setSession);
+  const setProfile = useAuthStore((s) => s.setProfile);
 
   return useMutation({
     mutationFn: (params: { fullName: string; farmName: string }) =>
       authService.completeProfile(params),
-    onSuccess: (session) => setSession(session),
+    onSuccess: (profile) => setProfile(profile),
     onError: (error) => logger.error("completeProfile failed", error),
   });
 }

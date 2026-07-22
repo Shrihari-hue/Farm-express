@@ -103,14 +103,43 @@ To actually send codes/log in, configure your Supabase project:
    `services/supabase/authService.ts` exchanges the ID token via
    `supabase.auth.signInWithIdToken`.
 
-**Temporary until Step 4 (Database):** role (`owner`/`supervisor`/`labour`)
-and farm ID are stored in the Supabase user's `user_metadata` rather than a
-real `public.users` table, since that table doesn't exist yet — every
-self-registered user becomes an `owner` of their own farm. All reads go
-through `services/supabase/mappers.ts#mapSupabaseUserToAppUser`, so Step 4
-only needs to change that one function (to query `public.users` instead of
-metadata) for the rest of the app to pick up real roles and farm-scoped
-data, including supervisor/labour accounts created via an invite flow.
+The moment someone verifies their first OTP, a Postgres trigger
+(`handle_new_user`, database/functions.sql) creates their `public.users`
+row with `farm_id = NULL`. The `complete-profile` screen calls the
+`complete_owner_profile(p_full_name, p_farm_name)` RPC, which creates their
+`farms` row and links it — that's the exact signal `needsProfileCompletion`
+in `services/state/authStore.ts` watches. Every self-registered user becomes
+the `owner` of a brand-new farm; supervisor/labour accounts instead get
+created (with their role and farm already set) via an invite flow once team
+management ships in Step 13.
+
+## Database
+
+Schema, RLS policies and functions/triggers live in `database/` as plain
+SQL — `schema.sql` (14 tables + `roles` reference table), `functions.sql`
+(`current_farm_id()`/`current_role()` helpers, the `handle_new_user` and
+`set_updated_at` triggers, the `complete_owner_profile` RPC) and
+`policies.sql` (Row Level Security). `database/migrations/0001_init.sql` is
+the frozen, applied snapshot of all three — apply it to a real project with:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <your-project-ref>
+npx supabase db push
+```
+
+Every farm-scoped table carries a `farm_id`; RLS (not app-level filtering)
+is what actually enforces that one farm can never see another's data —
+`current_farm_id()`/`current_role()` read the caller's own `public.users`
+row once per query and every policy builds on those two. `stock_history`
+and `activity_logs` are deliberately append-only: their policies allow
+SELECT and INSERT only, so "history should never be deleted" is enforced by
+Postgres, not by the app remembering not to expose a delete button.
+
+Regenerate `services/supabase/database.types.ts` from the real project once
+it exists (`npx supabase gen types typescript --project-id <id> > ...`) —
+it's hand-written for now, mirroring `schema.sql` exactly, so the app
+compiles without a live project during development.
 
 ## Roles
 
@@ -127,7 +156,7 @@ Being built step-by-step per the agreed build order. Currently complete:
 - [x] Step 1 — Project initialization
 - [x] Step 2 — Folder structure
 - [x] Step 3 — Authentication
-- [ ] Step 4 — Database
+- [x] Step 4 — Database
 - [ ] Step 5 — Dashboard
 - [ ] Step 6 — Labour Management
 - [ ] Step 7 — Attendance
