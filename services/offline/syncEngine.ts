@@ -16,6 +16,7 @@ import {
  * engine itself generic and unaware of feature-specific logic.
  */
 const TABLE_MAP: Record<string, string> = {
+  workers: "workers",
   attendance: "attendance",
   stock_history: "stock_history",
   sales: "sales",

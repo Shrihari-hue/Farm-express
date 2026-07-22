@@ -152,14 +152,34 @@ expenses chart (Victory Native), and a recent-activity feed off
 the screen, each has its own skeleton loading state, and pull-to-refresh
 invalidates all of them in parallel.
 
-Since Labour Management, Attendance, Stock, Sales and Expenses (Steps
-6–11) don't exist yet, every number starts at zero/empty for a brand-new
-farm — that's correct, not a bug. Quick Actions are real, tappable buttons
-that already point at where each module's entry screen will live; until
-that step ships, tapping one shows a "Coming in Step N" toast instead of a
-broken route. Labour-role users see a simplified placeholder instead of the
-full farm view, since "see only your own attendance/salary" needs the
-worker-to-login link that Team Management (Step 13) introduces.
+Since Attendance, Stock, Sales and Expenses (Steps 7–11) don't exist yet,
+those numbers start at zero/empty for a brand-new farm — that's correct,
+not a bug. Quick Actions are real, tappable buttons that already point at
+where each module's entry screen will live; until that step ships, tapping
+one shows a "Coming in Step N" toast instead of a broken route (Add Worker
+already deep-links for real, now that Step 6 exists). Labour-role users see
+a simplified placeholder instead of the full farm view, since "see only
+your own attendance/salary" needs the worker-to-login link that Team
+Management (Step 13) introduces.
+
+## Labour Management
+
+`app/(app)/workers/*` — a Permanent/Casual segmented list (search-filtered
+client-side), an add/edit form (`features/labour/components/WorkerForm.tsx`)
+that swaps its field set based on type, and a detail screen with
+Edit/Deactivate/Delete actions gated by the permission matrix (Deactivate
+sets `status = 'inactive'` and keeps history; Delete is a hard delete,
+owner-only, matching `PERMISSIONS.DELETE_RECORDS`).
+
+Worker photos go through `services/supabase/storage.ts` (`expo-file-system`
+→ base64 → `supabase.storage.upload`) into the `worker-photos` bucket at
+`{farm_id}/{worker_id}.jpg` — see `database/storage.sql` for the bucket +
+RLS setup. A new worker is created first (to get its id), then the photo
+uploads and patches `photo_url` in as a second step.
+
+The Workers tab is hidden entirely for the `labour` role (`href: null` in
+`app/(app)/_layout.tsx`) — matching "Labour can only see their own
+attendance/salary" from the product brief.
 
 ## Roles
 
@@ -178,7 +198,7 @@ Being built step-by-step per the agreed build order. Currently complete:
 - [x] Step 3 — Authentication
 - [x] Step 4 — Database
 - [x] Step 5 — Dashboard
-- [ ] Step 6 — Labour Management
+- [x] Step 6 — Labour Management
 - [ ] Step 7 — Attendance
 - [ ] Step 8 — Salary
 - [ ] Step 9 — Stock Register

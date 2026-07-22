@@ -16,9 +16,15 @@ Supabase dashboard.
 - `seed.sql` — deliberately does *not* insert fake farms/users (there's no
   safe way to fabricate an `auth.users` row from SQL); it documents how to
   seed realistic data once you've signed up for real in a dev project.
-- `migrations/0001_init.sql` — the frozen, applied snapshot of the three
-  files above, in the form the Supabase CLI actually runs
-  (`npx supabase db push`). Once applied anywhere, a migration file is never
-  edited — schema changes land as a new `0002_*.sql`, with `schema.sql` /
-  `functions.sql` / `policies.sql` updated to match so they stay the
-  reviewable "current state" reference.
+- `storage.sql` — Supabase Storage buckets + RLS on `storage.objects`.
+  `worker-photos` (Step 6) reuses `current_farm_id()`/`current_role()` via
+  `storage.foldername(name)`, so a photo's path prefix (`{farm_id}/...`) is
+  the security boundary, exactly like every table's `farm_id` column.
+- `migrations/` — the frozen, applied snapshots of the files above, in the
+  form the Supabase CLI actually runs (`npx supabase db push`):
+  `0001_init.sql` (schema + functions + policies), `0002_storage.sql`
+  (storage buckets + policies). Once applied anywhere, a migration file is
+  never edited — schema changes land as a new `000N_*.sql`, with the
+  relevant source file (`schema.sql`/`functions.sql`/`policies.sql`/
+  `storage.sql`) updated to match so they stay the reviewable "current
+  state" reference.
