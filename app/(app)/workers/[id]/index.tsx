@@ -11,6 +11,7 @@ import { can, isOwner } from "@utils/permissions";
 import { formatCurrency, formatDate, labelize } from "@utils/formatters";
 import { PHONE_COUNTRY_CODE } from "@constants/config";
 import { useDeleteWorker, useSetWorkerStatus, useWorkerQuery } from "@features/labour/hooks/useWorkers";
+import { MonthlyAttendanceSummary } from "@features/attendance/components/MonthlyAttendanceSummary";
 
 export default function WorkerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -147,9 +148,11 @@ export default function WorkerDetailScreen() {
         </Card>
       ) : null}
 
+      <MonthlyAttendanceSummary workerId={worker.id} />
+
       <Card style={styles.card}>
         <Text variant="caption" color="secondary">
-          Attendance history and salary slips will appear here once Steps 7 and 8 ship.
+          Salary slips will appear here once Step 8 ships.
         </Text>
       </Card>
 

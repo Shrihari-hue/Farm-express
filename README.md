@@ -152,15 +152,15 @@ expenses chart (Victory Native), and a recent-activity feed off
 the screen, each has its own skeleton loading state, and pull-to-refresh
 invalidates all of them in parallel.
 
-Since Attendance, Stock, Sales and Expenses (Steps 7–11) don't exist yet,
-those numbers start at zero/empty for a brand-new farm — that's correct,
-not a bug. Quick Actions are real, tappable buttons that already point at
-where each module's entry screen will live; until that step ships, tapping
-one shows a "Coming in Step N" toast instead of a broken route (Add Worker
-already deep-links for real, now that Step 6 exists). Labour-role users see
-a simplified placeholder instead of the full farm view, since "see only
-your own attendance/salary" needs the worker-to-login link that Team
-Management (Step 13) introduces.
+Since Stock, Sales and Expenses (Steps 9–11) don't exist yet, those numbers
+start at zero/empty for a brand-new farm — that's correct, not a bug. Quick
+Actions are real, tappable buttons that already point at where each
+module's entry screen will live; until that step ships, tapping one shows a
+"Coming in Step N" toast instead of a broken route (Add Worker and Mark
+Attendance already deep-link for real, now that Steps 6 and 7 exist).
+Labour-role users see a simplified placeholder instead of the full farm
+view, since "see only your own attendance/salary" needs the worker-to-login
+link that Team Management (Step 13) introduces.
 
 ## Labour Management
 
@@ -181,6 +181,41 @@ The Workers tab is hidden entirely for the `labour` role (`href: null` in
 `app/(app)/_layout.tsx`) — matching "Labour can only see their own
 attendance/salary" from the product brief.
 
+## Attendance
+
+`app/(app)/attendance/*` — a daily marking screen (`index.tsx`) listing every
+active worker (permanent + casual together, via `listActiveWorkers`) with
+five color-coded status pills — Present, Absent, Half Day, Leave, Late —
+tapping one marks that worker for the selected day immediately, no separate
+save step. Casual workers get an expandable "Today's Wage" (prefilled from
+their daily wage, editable per day) + "Work done" note, since their pay is
+computed per day rather than off a fixed salary. A "Mark all present" button
+handles the common case of a full crew showing up, and the date header
+(`DaySwitcher`) steps a day at a time or opens a calendar to jump further
+(never into the future). `history.tsx` shows a month calendar with a dot on
+every day that has at least one entry — green if everyone marked was
+present, amber otherwise — tapping a date opens the marking screen for it.
+
+Marking writes straight to Supabase's `attendance` table on an
+`upsert(... onConflict: "worker_id,date")`, so re-marking a worker for a day
+corrects the earlier entry rather than duplicating it. Offline, the same
+write goes into the local SQLite outbox instead (`features/attendance/hooks/
+useAttendance.ts`) and syncs automatically once connectivity returns; an
+"Offline — changes will sync" notice appears on the marking screen while
+disconnected. Reads (`getAttendanceForDate`, `getMonthAttendanceOverview`)
+deliberately return plain arrays rather than `Map`s — TanStack Query's data
+gets `JSON.stringify`'d into MMKV for offline persistence, and a `Map`
+silently serializes to `"{}"`; each hook builds its own `Map` locally via
+`useMemo` for lookup speed instead.
+
+Marking attendance is gated by `PERMISSIONS.ENTER_ATTENDANCE` (owner +
+supervisor); labour accounts see a placeholder in both the Attendance tab
+and the dashboard until Step 13 links a login to a worker row, at which
+point this same screen becomes "my attendance" for them. The worker detail
+screen now shows a real "Attendance this month" summary
+(`MonthlyAttendanceSummary`) instead of a placeholder, and the dashboard's
+"Mark Attendance" quick action deep-links here for real.
+
 ## Roles
 
 `owner` (full access) · `supervisor` (attendance/stock/sales, no deletes) ·
@@ -199,7 +234,7 @@ Being built step-by-step per the agreed build order. Currently complete:
 - [x] Step 4 — Database
 - [x] Step 5 — Dashboard
 - [x] Step 6 — Labour Management
-- [ ] Step 7 — Attendance
+- [x] Step 7 — Attendance
 - [ ] Step 8 — Salary
 - [ ] Step 9 — Stock Register
 - [ ] Step 10 — Sales

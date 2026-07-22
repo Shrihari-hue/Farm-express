@@ -24,10 +24,13 @@ export const queryClient = new QueryClient({
 
 export const queryKeys = {
   workers: (farmId: string, type?: string) => ["workers", farmId, type] as const,
+  activeWorkers: (farmId: string) => ["workers", farmId, "active-all"] as const,
   worker: (workerId: string) => ["worker", workerId] as const,
   attendance: (farmId: string, date: string) => ["attendance", farmId, date] as const,
   attendanceHistory: (workerId: string, month: string) =>
     ["attendance-history", workerId, month] as const,
+  attendanceMonthOverview: (farmId: string, month: string) =>
+    ["attendance-month-overview", farmId, month] as const,
   salaryPayments: (farmId: string, month: string) => ["salary-payments", farmId, month] as const,
   advances: (workerId: string) => ["advances", workerId] as const,
   stock: (farmId: string) => ["stock", farmId] as const,

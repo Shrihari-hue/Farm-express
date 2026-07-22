@@ -31,6 +31,7 @@ function mapRow(row: WorkerRow): Worker {
 export interface WorkerListFilters {
   type?: LabourType;
   search?: string;
+  status?: "active" | "inactive";
 }
 
 export async function listWorkers(farmId: string, filters: WorkerListFilters = {}): Promise<Worker[]> {
@@ -39,6 +40,9 @@ export async function listWorkers(farmId: string, filters: WorkerListFilters = {
   if (filters.type) {
     query = query.eq("type", filters.type);
   }
+  if (filters.status) {
+    query = query.eq("status", filters.status);
+  }
   if (filters.search) {
     query = query.or(`name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
   }
@@ -46,6 +50,12 @@ export async function listWorkers(farmId: string, filters: WorkerListFilters = {
   const { data, error } = await query.order("status", { ascending: true }).order("name", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(mapRow);
+}
+
+/** Every active worker regardless of type — used by Attendance (Step 7),
+ * which marks permanent and casual workers in one list. */
+export async function listActiveWorkers(farmId: string): Promise<Worker[]> {
+  return listWorkers(farmId, { status: "active" });
 }
 
 export async function getWorker(id: string): Promise<Worker | null> {

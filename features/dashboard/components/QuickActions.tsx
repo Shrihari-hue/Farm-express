@@ -19,7 +19,7 @@ interface QuickAction {
 
 const ACTIONS: QuickAction[] = [
   { label: "Add Worker", icon: UserPlus, step: 6, route: "/(app)/workers/new" },
-  { label: "Mark Attendance", icon: CalendarCheck, step: 7 },
+  { label: "Mark Attendance", icon: CalendarCheck, step: 7, route: "/(app)/attendance" },
   { label: "Record Sale", icon: ShoppingCart, step: 10 },
   { label: "Record Expense", icon: Receipt, step: 11 },
   { label: "Update Stock", icon: PackagePlus, step: 9 },
@@ -27,9 +27,10 @@ const ACTIONS: QuickAction[] = [
 
 /**
  * Every action here deep-links into its module's real entry screen once
- * that module ships (Steps 6, 7, 9, 10, 11). Until then, tapping shows a
- * friendly toast instead of a broken route — the buttons themselves are
- * real and final, only their destinations are still being built.
+ * that module ships (Steps 6, 7, 9, 10, 11 — 6 and 7 are wired up now).
+ * Until then, tapping shows a friendly toast instead of a broken route —
+ * the buttons themselves are real and final, only their destinations are
+ * still being built.
  */
 export function QuickActions() {
   const theme = useAppTheme();
