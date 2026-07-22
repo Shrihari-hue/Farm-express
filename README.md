@@ -81,6 +81,37 @@ moment `@react-native-community/netinfo` reports connectivity, and also on a
 via `PersistQueryClientProvider`, so cached data (today's attendance,
 current stock, recent sales) renders instantly even with zero connectivity.
 
+## Authentication
+
+Email OTP, Phone OTP (India, `+91`) and Google Login all issue a Supabase
+session that's persisted encrypted via `expo-secure-store` (see
+`services/storage/secureStore.ts` and `services/supabase/client.ts`). Flow:
+
+```
+(auth)/login  --send OTP-->  (auth)/verify-otp  --first sign-in-->  (auth)/complete-profile  -->  (app)/dashboard
+                                                  --returning user------------------------------->  (app)/dashboard
+```
+
+To actually send codes/log in, configure your Supabase project:
+
+1. **Email OTP** — enabled by default under Authentication → Providers → Email.
+2. **Phone OTP** — Authentication → Providers → Phone, plus an SMS provider
+   (Twilio, MessageBird, etc.) configured with your credentials.
+3. **Google Login** — Authentication → Providers → Google, using OAuth
+   client IDs from Google Cloud Console (one Web client ID, plus iOS/Android
+   client IDs for native). Put all three in `.env` (see `.env.example`) —
+   `services/supabase/authService.ts` exchanges the ID token via
+   `supabase.auth.signInWithIdToken`.
+
+**Temporary until Step 4 (Database):** role (`owner`/`supervisor`/`labour`)
+and farm ID are stored in the Supabase user's `user_metadata` rather than a
+real `public.users` table, since that table doesn't exist yet — every
+self-registered user becomes an `owner` of their own farm. All reads go
+through `services/supabase/mappers.ts#mapSupabaseUserToAppUser`, so Step 4
+only needs to change that one function (to query `public.users` instead of
+metadata) for the rest of the app to pick up real roles and farm-scoped
+data, including supervisor/labour accounts created via an invite flow.
+
 ## Roles
 
 `owner` (full access) · `supervisor` (attendance/stock/sales, no deletes) ·
@@ -95,7 +126,7 @@ Being built step-by-step per the agreed build order. Currently complete:
 
 - [x] Step 1 — Project initialization
 - [x] Step 2 — Folder structure
-- [ ] Step 3 — Authentication
+- [x] Step 3 — Authentication
 - [ ] Step 4 — Database
 - [ ] Step 5 — Dashboard
 - [ ] Step 6 — Labour Management

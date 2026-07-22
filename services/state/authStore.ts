@@ -1,11 +1,16 @@
 import { create } from "zustand";
+import type { Session } from "@supabase/supabase-js";
 import type { AppUser } from "@types/models";
+import { isProfileComplete, mapSupabaseUserToAppUser } from "@services/supabase/mappers";
 
 interface AuthState {
+  session: Session | null;
   user: AppUser | null;
   isHydrating: boolean;
   isAuthenticated: boolean;
-  setUser: (user: AppUser | null) => void;
+  /** True once a session exists but the user hasn't set their name/farm yet. */
+  needsProfileCompletion: boolean;
+  setSession: (session: Session | null) => void;
   setHydrating: (value: boolean) => void;
   signOutLocal: () => void;
 }
@@ -13,15 +18,24 @@ interface AuthState {
 /**
  * Holds the *current session's* user profile in memory for fast, synchronous
  * reads (role checks in navigation guards, etc). The source of truth is
- * still the Supabase session — this store is populated from it in
- * `features/auth` and cleared on sign-out. Nothing here is persisted
- * directly; the Supabase SDK already persists the session in SecureStore.
+ * still the Supabase session — `setSession` is called from
+ * `services/supabase/authService.ts`'s `onAuthStateChange` listener (wired
+ * up once in the root layout), never from screens directly.
  */
 export const useAuthStore = create<AuthState>((set) => ({
+  session: null,
   user: null,
   isHydrating: true,
   isAuthenticated: false,
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  needsProfileCompletion: false,
+  setSession: (session) =>
+    set({
+      session,
+      user: session ? mapSupabaseUserToAppUser(session.user) : null,
+      isAuthenticated: !!session,
+      needsProfileCompletion: session ? !isProfileComplete(session.user) : false,
+    }),
   setHydrating: (value) => set({ isHydrating: value }),
-  signOutLocal: () => set({ user: null, isAuthenticated: false }),
+  signOutLocal: () =>
+    set({ session: null, user: null, isAuthenticated: false, needsProfileCompletion: false }),
 }));

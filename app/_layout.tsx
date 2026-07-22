@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import { AppProviders } from "@components/providers/AppProviders";
 import { useAppTheme } from "@hooks/useAppTheme";
+import { useSessionBootstrap } from "@features/auth/hooks/useSessionBootstrap";
 
 // Keep the native splash screen visible until fonts/session are ready.
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -13,30 +14,23 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 /**
  * Root layout for the whole app. Route groups below plug into this:
- *  - `(auth)`  — sign-in, OTP verification (Step 3)
+ *  - `(auth)`  — sign-in, OTP verification, complete-profile (Step 3)
  *  - `(app)`   — the authenticated, tab-based experience (Step 5+)
  *
- * `index.tsx` decides which group to redirect into based on session state.
+ * `index.tsx` decides which group to redirect into based on session state,
+ * which `useSessionBootstrap` restores from SecureStore and keeps in sync.
  */
 export default function RootLayout() {
   const theme = useAppTheme();
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    // TODO(Step 3): also wait on Supabase session restoration here.
-    const prepare = async () => {
-      setIsReady(true);
-    };
-    void prepare();
-  }, []);
+  const { isHydrating } = useSessionBootstrap();
 
   const onLayoutRootView = useCallback(async () => {
-    if (isReady) {
+    if (!isHydrating) {
       await SplashScreen.hideAsync();
     }
-  }, [isReady]);
+  }, [isHydrating]);
 
-  if (!isReady) return null;
+  if (isHydrating) return null;
 
   return (
     <AppProviders>

@@ -4,6 +4,8 @@ import {
   Pressable,
   StyleSheet,
   type GestureResponderEvent,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useAppTheme } from "@hooks/useAppTheme";
@@ -23,6 +25,9 @@ interface Props {
   fullWidth?: boolean;
   icon?: React.ReactNode;
   testID?: string;
+  /** Extra layout styling (margins, etc.) — visual variants should stay
+   * driven by `variant`/`size`, not ad-hoc overrides here. */
+  style?: StyleProp<ViewStyle>;
 }
 
 const SIZE_MAP: Record<ButtonSize, { paddingVertical: number; fontSize: "sm" | "md" | "lg" }> = {
@@ -45,6 +50,7 @@ export function Button({
   fullWidth = false,
   icon,
   testID,
+  style,
 }: Props) {
   const theme = useAppTheme();
   const scale = useSharedValue(1);
@@ -86,6 +92,7 @@ export function Button({
           opacity: isDisabled ? 0.55 : 1,
           width: fullWidth ? "100%" : undefined,
         },
+        style,
       ]}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}

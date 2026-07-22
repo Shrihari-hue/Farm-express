@@ -42,7 +42,7 @@ export function Screen({
           {children}
         </ScrollView>
       ) : (
-        <View style={[styles.flex, padded && styles.padded, style]} {...rest}>
+        <View style={[styles.flex, padded && styles.padded, style, contentContainerStyle]} {...rest}>
           {children}
         </View>
       )}

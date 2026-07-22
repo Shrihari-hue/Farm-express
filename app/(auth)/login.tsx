@@ -1,18 +1,62 @@
-import { View, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { router } from "expo-router";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
 import { Sprout } from "lucide-react-native";
-import { Screen, Text, Button, Card } from "@components/ui";
+import { Screen, Text, Button, Input } from "@components/ui";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing, radii } from "@constants/theme";
+import { PHONE_COUNTRY_CODE } from "@constants/config";
+import { useAuthStore } from "@services/state/authStore";
+import { AuthMethodTabs } from "@features/auth/components/AuthMethodTabs";
+import { GoogleSignInButton } from "@features/auth/components/GoogleSignInButton";
+import { useGoogleAuth } from "@features/auth/hooks/useGoogleAuth";
+import { useSendEmailOtp, useSendPhoneOtp } from "@features/auth/hooks/useAuthMutations";
+import { emailLoginSchema, phoneLoginSchema } from "@features/auth/schemas";
+import type { AuthMethod } from "@features/auth/types";
 
-/**
- * Placeholder sign-in screen. It exists now purely to prove out the
- * navigation shell and design system end-to-end; the real Email OTP /
- * Phone OTP / Google Login flows are implemented in Step 3 (Authentication)
- * and will replace the body of this screen without touching the route
- * structure or the providers wired up in Step 1.
- */
 export default function LoginScreen() {
   const theme = useAppTheme();
+  const [method, setMethod] = useState<AuthMethod>("phone");
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const sendEmailOtp = useSendEmailOtp();
+  const sendPhoneOtp = useSendPhoneOtp();
+  const googleAuth = useGoogleAuth();
+
+  // Google sign-in resolves asynchronously in the background (browser tab
+  // closes itself); once the store flips to authenticated, re-run the
+  // redirect logic in app/index.tsx instead of navigating manually here.
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  useEffect(() => {
+    if (isAuthenticated) router.replace("/");
+  }, [isAuthenticated]);
+
+  const emailForm = useForm({ resolver: zodResolver(emailLoginSchema), defaultValues: { email: "" } });
+  const phoneForm = useForm({ resolver: zodResolver(phoneLoginSchema), defaultValues: { phone: "" } });
+
+  const isSubmitting = sendEmailOtp.isPending || sendPhoneOtp.isPending;
+
+  const onSubmitEmail = emailForm.handleSubmit(async ({ email }) => {
+    setServerError(null);
+    try {
+      await sendEmailOtp.mutateAsync(email);
+      router.push({ pathname: "/(auth)/verify-otp", params: { method: "email", identifier: email } });
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : "Couldn't send the code. Try again.");
+    }
+  });
+
+  const onSubmitPhone = phoneForm.handleSubmit(async ({ phone }) => {
+    setServerError(null);
+    try {
+      await sendPhoneOtp.mutateAsync(phone);
+      router.push({ pathname: "/(auth)/verify-otp", params: { method: "phone", identifier: phone } });
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : "Couldn't send the code. Try again.");
+    }
+  });
 
   return (
     <Screen scroll contentContainerStyle={styles.container}>
@@ -27,14 +71,78 @@ export default function LoginScreen() {
         Manage labour, attendance, salary, stock and sales — all in one place.
       </Text>
 
-      <Card style={styles.card}>
-        <Text variant="bodyStrong">Sign-in is coming in Step 3</Text>
-        <Text variant="caption" color="secondary" style={styles.cardCopy}>
-          Email OTP, Phone OTP and Google Login will appear here, backed by Supabase Auth and
-          role-based routing to the Owner, Supervisor or Labour experience.
+      <AuthMethodTabs value={method} onChange={setMethod} />
+
+      <View style={styles.form}>
+        {method === "phone" ? (
+          <Controller
+            control={phoneForm.control}
+            name="phone"
+            render={({ field, fieldState }) => (
+              <Input
+                label="Mobile number"
+                placeholder="98765 43210"
+                keyboardType="number-pad"
+                maxLength={10}
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+                leftIcon={<Text color="secondary">{PHONE_COUNTRY_CODE}</Text>}
+              />
+            )}
+          />
+        ) : (
+          <Controller
+            control={emailForm.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <Input
+                label="Email address"
+                placeholder="you@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+        )}
+
+        {serverError ? (
+          <Text variant="caption" color="danger" style={styles.serverError}>
+            {serverError}
+          </Text>
+        ) : null}
+
+        <Button
+          label="Send code"
+          onPress={method === "phone" ? onSubmitPhone : onSubmitEmail}
+          loading={isSubmitting}
+          fullWidth
+          style={styles.sendButton}
+        />
+      </View>
+
+      <View style={styles.dividerRow}>
+        <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+        <Text variant="caption" color="secondary" style={styles.dividerLabel}>
+          OR
         </Text>
-        <Button label="Continue" disabled style={styles.continueButton} />
-      </Card>
+        <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+      </View>
+
+      <GoogleSignInButton
+        onPress={() => googleAuth.promptAsync()}
+        loading={googleAuth.isLoading}
+        disabled={!googleAuth.isReady}
+      />
+
+      <Text variant="caption" color="secondary" align="center" style={styles.terms}>
+        By continuing you agree to Farm Express's Terms of Service and Privacy Policy.
+      </Text>
     </Screen>
   );
 }
@@ -44,7 +152,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     padding: spacing.lg,
-    gap: spacing.md,
   },
   logoWrap: {
     alignSelf: "center",
@@ -57,7 +164,11 @@ const styles = StyleSheet.create({
   },
   title: { marginBottom: spacing.xxs },
   subtitle: { marginBottom: spacing.lg, paddingHorizontal: spacing.md },
-  card: { gap: spacing.xs },
-  cardCopy: { marginBottom: spacing.sm },
-  continueButton: { marginTop: spacing.xxs },
+  form: { gap: spacing.sm, marginTop: spacing.md },
+  serverError: { marginTop: -spacing.xxs },
+  sendButton: { marginTop: spacing.xxs },
+  dividerRow: { flexDirection: "row", alignItems: "center", marginVertical: spacing.lg },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth },
+  dividerLabel: { marginHorizontal: spacing.sm },
+  terms: { marginTop: spacing.lg, paddingHorizontal: spacing.md },
 });
