@@ -141,6 +141,26 @@ it exists (`npx supabase gen types typescript --project-id <id> > ...`) —
 it's hand-written for now, mirroring `schema.sql` exactly, so the app
 compiles without a live project during development.
 
+## Dashboard
+
+`app/(app)/dashboard.tsx` pulls live data through `features/dashboard/api/*`
+straight from Supabase: worker counts, today's attendance breakdown,
+today's sales/expenses, current stock + low-stock alerts, a 7-day sales vs.
+expenses chart (Victory Native), and a recent-activity feed off
+`activity_logs`. Every widget is its own `useQuery` (see
+`useDashboardData.ts`) so one slow/failing widget never blocks the rest of
+the screen, each has its own skeleton loading state, and pull-to-refresh
+invalidates all of them in parallel.
+
+Since Labour Management, Attendance, Stock, Sales and Expenses (Steps
+6–11) don't exist yet, every number starts at zero/empty for a brand-new
+farm — that's correct, not a bug. Quick Actions are real, tappable buttons
+that already point at where each module's entry screen will live; until
+that step ships, tapping one shows a "Coming in Step N" toast instead of a
+broken route. Labour-role users see a simplified placeholder instead of the
+full farm view, since "see only your own attendance/salary" needs the
+worker-to-login link that Team Management (Step 13) introduces.
+
 ## Roles
 
 `owner` (full access) · `supervisor` (attendance/stock/sales, no deletes) ·
@@ -157,7 +177,7 @@ Being built step-by-step per the agreed build order. Currently complete:
 - [x] Step 2 — Folder structure
 - [x] Step 3 — Authentication
 - [x] Step 4 — Database
-- [ ] Step 5 — Dashboard
+- [x] Step 5 — Dashboard
 - [ ] Step 6 — Labour Management
 - [ ] Step 7 — Attendance
 - [ ] Step 8 — Salary

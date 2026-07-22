@@ -36,4 +36,20 @@ export const queryKeys = {
   expenses: (farmId: string, range: string) => ["expenses", farmId, range] as const,
   dashboard: (farmId: string, date: string) => ["dashboard", farmId, date] as const,
   notifications: (userId: string) => ["notifications", userId] as const,
+
+  // Dashboard (Step 5) widgets — split per-widget so one slow query never
+  // blocks the rest of the screen from rendering, and pull-to-refresh can
+  // invalidate just this farm's dashboard data.
+  workerCounts: (farmId: string) => ["dashboard", "worker-counts", farmId] as const,
+  attendanceSummary: (farmId: string, date: string) =>
+    ["dashboard", "attendance-summary", farmId, date] as const,
+  todaySalesTotal: (farmId: string, date: string) =>
+    ["dashboard", "sales-total", farmId, date] as const,
+  todayExpensesTotal: (farmId: string, date: string) =>
+    ["dashboard", "expenses-total", farmId, date] as const,
+  stockSummary: (farmId: string) => ["dashboard", "stock-summary", farmId] as const,
+  recentActivity: (farmId: string) => ["dashboard", "recent-activity", farmId] as const,
+  weeklyTrend: (farmId: string, weekStart: string) =>
+    ["dashboard", "weekly-trend", farmId, weekStart] as const,
+  farm: (farmId: string) => ["farm", farmId] as const,
 };

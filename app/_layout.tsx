@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
+import Toast from "react-native-toast-message";
 import { AppProviders } from "@components/providers/AppProviders";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { useSessionBootstrap } from "@features/auth/hooks/useSessionBootstrap";
@@ -41,6 +42,7 @@ export default function RootLayout() {
           <Stack.Screen name="(app)" />
           <Stack.Screen name="+not-found" />
         </Stack>
+        <Toast />
       </View>
     </AppProviders>
   );

@@ -465,6 +465,9 @@ begin
   where id = auth.uid()
   returning * into v_result;
 
+  insert into public.activity_logs (farm_id, user_id, action, entity_type, entity_id)
+  values (v_farm_id, auth.uid(), 'farm_created', 'farm', v_farm_id);
+
   return v_result;
 end;
 $$;

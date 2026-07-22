@@ -10,6 +10,9 @@ interface Props extends Omit<ViewProps, "style"> {
   padded?: boolean;
   style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  /** Only used when `scroll` is true — forwarded to the ScrollView for
+   * pull-to-refresh (see app/(app)/dashboard.tsx for an example). */
+  refreshControl?: React.ReactElement;
   children: React.ReactNode;
 }
 
@@ -26,6 +29,7 @@ export function Screen({
   padded = true,
   style,
   contentContainerStyle,
+  refreshControl,
   children,
   ...rest
 }: Props) {
@@ -37,6 +41,7 @@ export function Screen({
         <ScrollView
           style={[styles.flex, style]}
           contentContainerStyle={[padded && styles.padded, contentContainerStyle]}
+          refreshControl={refreshControl}
           {...rest}
         >
           {children}

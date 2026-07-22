@@ -54,6 +54,14 @@ export function labelize(value: string): string {
     .join(" ");
 }
 
+/** Time-of-day greeting for dashboard headers ("Good morning, Ramesh"). */
+export function getTimeOfDayGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
