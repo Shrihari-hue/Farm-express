@@ -12,3 +12,5 @@ export * from "./Divider";
 export * from "./StatCard";
 export * from "./SegmentedControl";
 export * from "./DateField";
+export * from "./PickerModal";
+export * from "./ChipSelect";

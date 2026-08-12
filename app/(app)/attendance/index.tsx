@@ -34,17 +34,6 @@ export default function AttendanceScreen() {
   const markAttendance = useMarkAttendance(farmId, date);
   const markAllPresent = useMarkAllPresent(farmId, date);
 
-  if (user?.role === "labour") {
-    return (
-      <Screen contentContainerStyle={styles.labourNotice}>
-        <Text variant="body" color="secondary" align="center">
-          Your attendance will appear here once your supervisor links your worker profile —
-          coming with Step 13 (Team Management).
-        </Text>
-      </Screen>
-    );
-  }
-
   const isLoading = workers.isLoading || attendance.isLoading;
   const isError = workers.isError || attendance.isError;
 
@@ -179,5 +168,4 @@ const styles = StyleSheet.create({
   list: { padding: spacing.md, paddingTop: 0, gap: spacing.sm, flexGrow: 1 },
   markAllButton: { marginBottom: spacing.sm },
   historyButton: { marginHorizontal: spacing.md, marginBottom: spacing.sm },
-  labourNotice: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl },
 });

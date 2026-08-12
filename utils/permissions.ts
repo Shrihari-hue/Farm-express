@@ -1,6 +1,6 @@
 import { PERMISSIONS, type Role } from "@constants/config";
 
-type PermissionKey = keyof typeof PERMISSIONS;
+export type PermissionKey = keyof typeof PERMISSIONS;
 
 /** Central permission check — every screen/action that needs a role gate
  * should call this instead of comparing `role === "owner"` inline, so the

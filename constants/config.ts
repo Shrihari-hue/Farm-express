@@ -82,15 +82,17 @@ export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[keyof typeof EXPENSE_C
 
 /** Simple, explicit permission matrix used by `utils/permissions.ts`. */
 export const PERMISSIONS = {
+  // Labour has the same day-to-day recording access as supervisor (record
+  // sales, expenses, stock movements, attendance) — only worker/payroll
+  // management and account settings stay owner+supervisor / owner-only.
   MANAGE_WORKERS: [ROLES.OWNER, ROLES.SUPERVISOR],
   DELETE_RECORDS: [ROLES.OWNER],
-  ENTER_ATTENDANCE: [ROLES.OWNER, ROLES.SUPERVISOR],
-  UPDATE_STOCK: [ROLES.OWNER, ROLES.SUPERVISOR],
-  MANAGE_SALES: [ROLES.OWNER, ROLES.SUPERVISOR],
-  MANAGE_EXPENSES: [ROLES.OWNER, ROLES.SUPERVISOR],
+  ENTER_ATTENDANCE: [ROLES.OWNER, ROLES.SUPERVISOR, ROLES.LABOUR],
+  UPDATE_STOCK: [ROLES.OWNER, ROLES.SUPERVISOR, ROLES.LABOUR],
+  MANAGE_SALES: [ROLES.OWNER, ROLES.SUPERVISOR, ROLES.LABOUR],
+  MANAGE_EXPENSES: [ROLES.OWNER, ROLES.SUPERVISOR, ROLES.LABOUR],
   VIEW_REPORTS: [ROLES.OWNER, ROLES.SUPERVISOR],
   MANAGE_SETTINGS: [ROLES.OWNER],
-  VIEW_OWN_ATTENDANCE_ONLY: [ROLES.LABOUR],
 } as const;
 
 export const DEFAULT_CURRENCY = "INR";

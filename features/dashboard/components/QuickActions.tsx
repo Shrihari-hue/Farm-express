@@ -1,51 +1,42 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import Toast from "react-native-toast-message";
 import { CalendarCheck, PackagePlus, Receipt, ShoppingCart, UserPlus, type LucideIcon } from "lucide-react-native";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { radii, spacing } from "@constants/theme";
 import { Text } from "@components/ui";
+import { useAuthStore } from "@services/state/authStore";
+import { can } from "@utils/permissions";
+import type { PermissionKey } from "@utils/permissions";
 
 interface QuickAction {
   label: string;
   icon: LucideIcon;
-  /** Step the real screen ships in. */
-  step: number;
-  /** Set once that step ships — tapping navigates here instead of showing
-   * the "coming soon" toast. */
-  route?: string;
+  route: string;
+  /** Permission gating which roles see this action at all. */
+  permission: PermissionKey;
 }
 
 const ACTIONS: QuickAction[] = [
-  { label: "Add Worker", icon: UserPlus, step: 6, route: "/(app)/workers/new" },
-  { label: "Mark Attendance", icon: CalendarCheck, step: 7, route: "/(app)/attendance" },
-  { label: "Record Sale", icon: ShoppingCart, step: 10 },
-  { label: "Record Expense", icon: Receipt, step: 11 },
-  { label: "Update Stock", icon: PackagePlus, step: 9 },
+  { label: "Add Worker", icon: UserPlus, route: "/(app)/workers/new", permission: "MANAGE_WORKERS" },
+  { label: "Mark Attendance", icon: CalendarCheck, route: "/(app)/attendance", permission: "ENTER_ATTENDANCE" },
+  { label: "Record Sale", icon: ShoppingCart, route: "/(app)/sales/new", permission: "MANAGE_SALES" },
+  { label: "Record Expense", icon: Receipt, route: "/(app)/expenses/new", permission: "MANAGE_EXPENSES" },
+  { label: "Update Stock", icon: PackagePlus, route: "/(app)/stock", permission: "UPDATE_STOCK" },
 ];
 
-/**
- * Every action here deep-links into its module's real entry screen once
- * that module ships (Steps 6, 7, 9, 10, 11 — 6 and 7 are wired up now).
- * Until then, tapping shows a friendly toast instead of a broken route —
- * the buttons themselves are real and final, only their destinations are
- * still being built.
- */
+/** Every action deep-links into its module's real entry screen, filtered to
+ * whatever the signed-in role is actually allowed to do. */
 export function QuickActions() {
   const theme = useAppTheme();
+  const role = useAuthStore((s) => s.user?.role);
+  const actions = ACTIONS.filter((action) => can(role, action.permission));
 
   const handlePress = (action: QuickAction) => {
-    if (action.route) {
-      router.push(action.route as never);
-      return;
-    }
-    Toast.show({
-      type: "info",
-      text1: action.label,
-      text2: `Coming in Step ${action.step}`,
-    });
+    router.push(action.route as never);
   };
+
+  if (actions.length === 0) return null;
 
   return (
     <View>
@@ -53,7 +44,7 @@ export function QuickActions() {
         Quick actions
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-        {ACTIONS.map((action) => (
+        {actions.map((action) => (
           <Pressable
             key={action.label}
             onPress={() => handlePress(action)}

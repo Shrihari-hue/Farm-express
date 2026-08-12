@@ -14,6 +14,10 @@ import attendanceRoutes from "./routes/attendance";
 import dashboardRoutes from "./routes/dashboard";
 import farmRoutes from "./routes/farms";
 import uploadRoutes from "./routes/uploads";
+import stockRoutes from "./routes/stock";
+import buyerRoutes from "./routes/buyers";
+import salesRoutes from "./routes/sales";
+import expenseRoutes from "./routes/expenses";
 
 const PORT = Number(process.env.PORT) || 4000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -45,6 +49,10 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/farms", farmRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/stock", stockRoutes);
+app.use("/api/buyers", buyerRoutes);
+app.use("/api/sales", salesRoutes);
+app.use("/api/expenses", expenseRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -90,7 +90,7 @@ router.get(
 // PUT /api/attendance — upsert one record on { workerId, date }
 router.put(
   "/",
-  requireRole("owner", "supervisor"),
+  requireRole("owner", "supervisor", "labour"),
   asyncHandler(async (req, res) => {
     const payload = markAttendanceSchema.parse(req.body);
 
@@ -123,7 +123,7 @@ router.put(
 // PUT /api/attendance/bulk — upsert every worker as status: 'present' for that date
 router.put(
   "/bulk",
-  requireRole("owner", "supervisor"),
+  requireRole("owner", "supervisor", "labour"),
   asyncHandler(async (req, res) => {
     const { date, workerIds, markedBy } = bulkMarkSchema.parse(req.body);
 

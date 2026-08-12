@@ -1,13 +1,14 @@
 import { Tabs } from "expo-router";
-import { CalendarCheck, LayoutGrid, Users } from "lucide-react-native";
+import { CalendarCheck, LayoutGrid, PackageSearch, Receipt, ShoppingCart, Users } from "lucide-react-native";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { useAuthStore } from "@services/state/authStore";
 
 /**
- * Authenticated, tab-based experience. Salary, Stock, Sales, Expenses,
- * Reports and Settings tabs are added incrementally as their respective
- * build steps (8 through 13) are approved, to keep every step's diff
- * focused. Attendance (Step 7) is the first of those to ship.
+ * Authenticated, tab-based experience. Salary, Reports and Settings tabs are
+ * still to come — Dashboard, Workers, Attendance, Stock, Sales and Expenses
+ * are the modules built so far. Labour accounts get the same tabs as
+ * supervisor except Workers (roster/payroll management stays owner+
+ * supervisor-only — see PERMISSIONS.MANAGE_WORKERS).
  */
 export default function AppLayout() {
   const theme = useAppTheme();
@@ -35,8 +36,6 @@ export default function AppLayout() {
         options={{
           title: "Workers",
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
-          // Labour accounts only see their own attendance/salary (once
-          // Step 13 links a login to a worker row) — no roster access.
           href: isLabour ? null : undefined,
         }}
       />
@@ -45,10 +44,27 @@ export default function AppLayout() {
         options={{
           title: "Attendance",
           tabBarIcon: ({ color, size }) => <CalendarCheck color={color} size={size} />,
-          // Labour sees a restricted placeholder inside the screen itself
-          // (see app/(app)/attendance/index.tsx) rather than a hidden tab,
-          // since this is where their own attendance will surface once
-          // Step 13's worker-login link exists.
+        }}
+      />
+      <Tabs.Screen
+        name="stock"
+        options={{
+          title: "Stock",
+          tabBarIcon: ({ color, size }) => <PackageSearch color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sales"
+        options={{
+          title: "Sales",
+          tabBarIcon: ({ color, size }) => <ShoppingCart color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="expenses"
+        options={{
+          title: "Expenses",
+          tabBarIcon: ({ color, size }) => <Receipt color={color} size={size} />,
         }}
       />
     </Tabs>

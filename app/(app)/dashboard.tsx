@@ -29,7 +29,6 @@ export default function DashboardScreen() {
     router.replace("/(auth)/login");
   };
 
-  const isLabour = user?.role === "labour";
   const totalWorkers = (data.workerCounts.data?.permanent ?? 0) + (data.workerCounts.data?.casual ?? 0);
 
   return (
@@ -65,32 +64,23 @@ export default function DashboardScreen() {
         </Pressable>
       </View>
 
-      {isLabour ? (
-        <View style={styles.labourNotice}>
-          <Text variant="body" color="secondary">
-            Your attendance and salary will appear here as soon as your supervisor links your worker
-            profile and starts recording them — coming with Steps 7 and 8.
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.sections}>
-          <QuickActions />
-          <WorkforceRow counts={data.workerCounts.data} isLoading={data.workerCounts.isLoading} />
-          <AttendanceOverviewCard
-            summary={data.attendanceSummary.data}
-            totalWorkers={totalWorkers}
-            isLoading={data.attendanceSummary.isLoading || data.workerCounts.isLoading}
-          />
-          <MoneyOverviewRow
-            sales={data.todaySales.data}
-            expenses={data.todayExpenses.data}
-            isLoading={data.todaySales.isLoading || data.todayExpenses.isLoading}
-          />
-          <StockOverviewCard summary={data.stockSummary.data} isLoading={data.stockSummary.isLoading} />
-          <WeeklyTrendChart data={data.weeklyTrend.data} isLoading={data.weeklyTrend.isLoading} />
-          <RecentActivityList activity={data.recentActivity.data} isLoading={data.recentActivity.isLoading} />
-        </View>
-      )}
+      <View style={styles.sections}>
+        <QuickActions />
+        <WorkforceRow counts={data.workerCounts.data} isLoading={data.workerCounts.isLoading} />
+        <AttendanceOverviewCard
+          summary={data.attendanceSummary.data}
+          totalWorkers={totalWorkers}
+          isLoading={data.attendanceSummary.isLoading || data.workerCounts.isLoading}
+        />
+        <MoneyOverviewRow
+          sales={data.todaySales.data}
+          expenses={data.todayExpenses.data}
+          isLoading={data.todaySales.isLoading || data.todayExpenses.isLoading}
+        />
+        <StockOverviewCard summary={data.stockSummary.data} isLoading={data.stockSummary.isLoading} />
+        <WeeklyTrendChart data={data.weeklyTrend.data} isLoading={data.weeklyTrend.isLoading} />
+        <RecentActivityList activity={data.recentActivity.data} isLoading={data.recentActivity.isLoading} />
+      </View>
     </Screen>
   );
 }
@@ -108,6 +98,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: StyleSheet.hairlineWidth,
   },
-  labourNotice: { paddingVertical: spacing.xl },
   sections: { gap: spacing.md },
 });

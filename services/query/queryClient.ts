@@ -34,9 +34,11 @@ export const queryKeys = {
   salaryPayments: (farmId: string, month: string) => ["salary-payments", farmId, month] as const,
   advances: (workerId: string) => ["advances", workerId] as const,
   stock: (farmId: string) => ["stock", farmId] as const,
+  stockItem: (stockItemId: string) => ["stock-item", stockItemId] as const,
   stockHistory: (stockItemId: string) => ["stock-history", stockItemId] as const,
   sales: (farmId: string, range: string) => ["sales", farmId, range] as const,
   expenses: (farmId: string, range: string) => ["expenses", farmId, range] as const,
+  buyers: (farmId: string) => ["buyers", farmId] as const,
   dashboard: (farmId: string, date: string) => ["dashboard", farmId, date] as const,
   notifications: (userId: string) => ["notifications", userId] as const,
 
