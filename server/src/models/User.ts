@@ -23,7 +23,11 @@ const userSchema = new Schema<IUser>(
     // `.select("+passwordHash")` where it's needed (login).
     passwordHash: { type: String, required: true, select: false },
     farmId: { type: Schema.Types.ObjectId, ref: "Farm", default: null },
-    fullName: { type: String, required: true, default: "" },
+    // Not required at signup — collected on the complete-profile step
+    // (see `needsProfileCompletion` in the client's authStore). Mongoose
+    // treats an empty string as "missing" for `required` on String fields,
+    // so `required: true` here would reject every registration.
+    fullName: { type: String, default: "" },
     role: { type: String, enum: ["owner", "supervisor", "labour"], required: true, default: "owner" },
     phone: { type: String, default: null },
     avatarUrl: { type: String, default: null },
