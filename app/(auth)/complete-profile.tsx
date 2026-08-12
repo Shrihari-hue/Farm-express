@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { UserCircle } from "lucide-react-native";
+import { CircleUser } from "lucide-react-native";
 import { Screen, Text, Button, Input } from "@components/ui";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing, radii } from "@constants/theme";
@@ -36,7 +36,7 @@ export default function CompleteProfileScreen() {
   return (
     <Screen scroll contentContainerStyle={styles.container}>
       <View style={[styles.iconWrap, { backgroundColor: theme.primarySoft }]}>
-        <UserCircle size={32} color={theme.primary} />
+        <CircleUser size={32} color={theme.primary} />
       </View>
 
       <Text variant="title" align="center" style={styles.title}>

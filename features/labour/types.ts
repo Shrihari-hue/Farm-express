@@ -1,5 +1,5 @@
 import type { LabourType } from "@constants/config";
-import type { BankDetails } from "@types/models";
+import type { BankDetails } from "@app-types/models";
 
 export interface WorkerFormValues {
   type: LabourType;

@@ -5,7 +5,7 @@ import { useNetworkStatus } from "@hooks/useNetworkStatus";
 import { enqueueMutation } from "@services/offline/mutationQueue";
 import { listActiveWorkers } from "@features/labour/api/workersApi";
 import type { AttendanceStatus } from "@constants/config";
-import type { Attendance } from "@types/models";
+import type { Attendance } from "@app-types/models";
 import {
   getAttendanceForDate,
   getMonthAttendanceOverview,
@@ -55,19 +55,10 @@ export function useMarkAttendance(farmId: string, date: string) {
   return useMutation({
     mutationFn: async (payload: MarkAttendancePayload) => {
       if (!isOnline) {
-        // syncEngine.replayOne() does a raw `supabase.from(table).upsert(payload)`
-        // with no field mapping, so the queued payload must already use the
-        // table's snake_case column names — not the camelCase domain shape.
-        enqueueMutation("attendance", "insert", {
-          farm_id: payload.farmId,
-          worker_id: payload.workerId,
-          date: payload.date,
-          status: payload.status,
-          todays_wage: payload.todaysWage,
-          work_done: payload.workDone,
-          remarks: payload.remarks,
-          marked_by: payload.markedBy,
-        });
+        // syncEngine.replayOne() calls attendanceApi.markAttendance(payload)
+        // on replay, so the queued payload must already match
+        // MarkAttendancePayload's camelCase domain shape.
+        enqueueMutation("attendance", "insert", { ...payload });
         return null;
       }
       return markAttendance(payload);
@@ -115,14 +106,14 @@ export function useMarkAllPresent(farmId: string, date: string) {
       if (!isOnline) {
         for (const workerId of params.workerIds) {
           enqueueMutation("attendance", "insert", {
-            farm_id: farmId,
-            worker_id: workerId,
+            farmId,
+            workerId,
             date,
             status: "present",
-            todays_wage: null,
-            work_done: null,
+            todaysWage: null,
+            workDone: null,
             remarks: null,
-            marked_by: params.markedBy,
+            markedBy: params.markedBy,
           });
         }
         return;

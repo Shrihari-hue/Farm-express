@@ -1,50 +1,76 @@
 import NetInfo from "@react-native-community/netinfo";
-import { supabase } from "@services/supabase/client";
 import { queryClient } from "@services/query/queryClient";
 import { logger } from "@utils/logger";
 import { OFFLINE_SYNC_INTERVAL_MS } from "@constants/config";
+import type { AttendanceStatus } from "@constants/config";
+import * as workersApi from "@features/labour/api/workersApi";
+import * as attendanceApi from "@features/attendance/api/attendanceApi";
 import {
   countPendingMutations,
   getPendingMutations,
   markMutationFailed,
   removeMutation,
+  type QueuedMutation,
 } from "./mutationQueue";
 
+interface QueuedAttendancePayload {
+  farmId: string;
+  workerId: string;
+  date: string;
+  status: AttendanceStatus;
+  todaysWage: number | null;
+  workDone: string | null;
+  remarks: string | null;
+  markedBy: string;
+}
+
+interface QueuedWorkerStatusPayload {
+  id: string;
+  status: "active" | "inactive";
+}
+
 /**
- * Table name -> Supabase table mapping for queued entities. Feature modules
- * register themselves here as they're built (Steps 6-11), keeping the sync
- * engine itself generic and unaware of feature-specific logic.
+ * Replays one queued mutation against the new backend, dispatched off
+ * `entity_type`/`operation` and calling the same rewritten feature API
+ * functions the online path uses (`workersApi`/`attendanceApi`) — replacing
+ * the old raw `supabase.from(table).upsert/delete` calls.
+ *
+ * `stock_history`/`sales`/`expenses`/`salary_advances` aren't registered
+ * here (unlike the old Supabase-era `TABLE_MAP`): no feature UI enqueues
+ * those entity types yet (Steps 8-11 aren't built), so there's nothing to
+ * replay for them today. Add a `case` here once those features queue
+ * mutations of their own.
  */
-const TABLE_MAP: Record<string, string> = {
-  workers: "workers",
-  attendance: "attendance",
-  stock_history: "stock_history",
-  sales: "sales",
-  expenses: "expenses",
-  salary_advances: "salary_advances",
-};
-
-let syncTimer: ReturnType<typeof setInterval> | null = null;
-let isSyncing = false;
-
-async function replayOne(mutation: ReturnType<typeof getPendingMutations>[number]): Promise<void> {
-  const table = TABLE_MAP[mutation.entityType];
-  if (!table) {
-    logger.warn("Unknown queued entity type, dropping mutation", mutation.entityType);
-    removeMutation(mutation.id);
-    return;
-  }
-
-  if (mutation.operation === "insert" || mutation.operation === "update") {
-    const { error } = await supabase.from(table).upsert(mutation.payload);
-    if (error) throw error;
-  } else if (mutation.operation === "delete") {
-    const { error } = await supabase.from(table).delete().eq("id", (mutation.payload as { id: string }).id);
-    if (error) throw error;
+async function replayOne(mutation: QueuedMutation): Promise<void> {
+  switch (mutation.entityType) {
+    case "attendance": {
+      if (mutation.operation === "insert" || mutation.operation === "update") {
+        const payload = mutation.payload as unknown as QueuedAttendancePayload;
+        await attendanceApi.markAttendance(payload);
+      } else {
+        logger.warn("Unsupported queued attendance operation, dropping mutation", mutation.operation);
+      }
+      break;
+    }
+    case "workers": {
+      if (mutation.operation === "update") {
+        const payload = mutation.payload as unknown as QueuedWorkerStatusPayload;
+        await workersApi.updateWorker(payload.id, { status: payload.status });
+      } else {
+        logger.warn("Unsupported queued workers operation, dropping mutation", mutation.operation);
+      }
+      break;
+    }
+    default:
+      logger.warn("Unknown queued entity type, dropping mutation", mutation.entityType);
+      break;
   }
 
   removeMutation(mutation.id);
 }
+
+let syncTimer: ReturnType<typeof setInterval> | null = null;
+let isSyncing = false;
 
 /** Drains the outbox in FIFO order. Stops at the first failure so
  * dependent writes (e.g. edits after an insert) never get reordered. */

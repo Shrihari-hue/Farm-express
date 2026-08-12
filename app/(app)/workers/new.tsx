@@ -9,7 +9,7 @@ import { useAuthStore } from "@services/state/authStore";
 import { useCreateWorker } from "@features/labour/hooks/useWorkers";
 import { updateWorker } from "@features/labour/api/workersApi";
 import { WorkerForm } from "@features/labour/components/WorkerForm";
-import { isLocalFileUri, uploadImageAsync } from "@services/supabase/storage";
+import { isLocalFileUri, uploadWorkerPhoto } from "@services/api/uploads";
 import type { WorkerFormSchema } from "@features/labour/schemas";
 
 /**
@@ -47,11 +47,7 @@ export default function NewWorkerScreen() {
       if (isLocalFileUri(values.photoUri)) {
         setIsUploadingPhoto(true);
         try {
-          const photoUrl = await uploadImageAsync({
-            bucket: "worker-photos",
-            path: `${farmId}/${worker.id}.jpg`,
-            localUri: values.photoUri,
-          });
+          const photoUrl = await uploadWorkerPhoto(worker.id, values.photoUri);
           await updateWorker(worker.id, { photoUrl });
           queryClient.invalidateQueries({ queryKey: queryKeys.worker(worker.id) });
         } finally {

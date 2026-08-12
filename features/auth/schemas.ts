@@ -1,20 +1,22 @@
 import { z } from "zod";
-import { emailSchema, otpSchema, phoneSchema, nonEmptyString } from "@utils/validation";
+import { emailSchema, nonEmptyString } from "@utils/validation";
 
-export const emailLoginSchema = z.object({
+/** Shared by both the login and register forms. */
+export const credentialsSchema = z.object({
   email: emailSchema,
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
-export type EmailLoginForm = z.infer<typeof emailLoginSchema>;
+export type CredentialsForm = z.infer<typeof credentialsSchema>;
 
-export const phoneLoginSchema = z.object({
-  phone: phoneSchema,
-});
-export type PhoneLoginForm = z.infer<typeof phoneLoginSchema>;
-
-export const otpVerificationSchema = z.object({
-  otp: otpSchema,
-});
-export type OtpVerificationForm = z.infer<typeof otpVerificationSchema>;
+export const registerSchema = credentialsSchema
+  .extend({
+    confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+export type RegisterForm = z.infer<typeof registerSchema>;
 
 export const completeProfileSchema = z.object({
   fullName: nonEmptyString("Full name"),

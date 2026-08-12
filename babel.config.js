@@ -15,13 +15,13 @@ module.exports = function (api) {
             "@hooks": "./hooks",
             "@constants": "./constants",
             "@utils": "./utils",
-            "@types": "./types",
+            "@app-types": "./types",
             "@database": "./database",
           },
         },
       ],
-      // Reanimated plugin has to be listed last
-      "react-native-reanimated/plugin",
+      // Worklets plugin (required by Reanimated 4) has to be listed last
+      "react-native-worklets/plugin",
     ],
   };
 };

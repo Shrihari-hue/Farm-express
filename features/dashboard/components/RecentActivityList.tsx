@@ -5,7 +5,7 @@ import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing, radii } from "@constants/theme";
 import { Card, EmptyState, Skeleton, Text } from "@components/ui";
 import { formatRelativeTime, labelize } from "@utils/formatters";
-import type { ActivityLog } from "@types/models";
+import type { ActivityLog } from "@app-types/models";
 
 interface Props {
   activity: ActivityLog[] | undefined;

@@ -5,7 +5,7 @@ import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing } from "@constants/theme";
 import { Avatar, Badge, Card, Text } from "@components/ui";
 import { formatCurrency } from "@utils/formatters";
-import type { Worker } from "@types/models";
+import type { Worker } from "@app-types/models";
 
 interface Props {
   worker: Worker;

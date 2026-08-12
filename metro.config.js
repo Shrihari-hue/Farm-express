@@ -15,6 +15,9 @@ config.resolver = {
   ...resolver,
   assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
   sourceExts: [...resolver.sourceExts, "svg"],
+  // expo-sqlite's build output uses extensionless relative exports, which
+  // breaks under Metro's strict package-exports resolution. Disable it.
+  unstable_enablePackageExports: false,
 };
 
 module.exports = config;

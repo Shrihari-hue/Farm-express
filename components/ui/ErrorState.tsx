@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { AlertTriangle } from "lucide-react-native";
+import { TriangleAlert } from "lucide-react-native";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing } from "@constants/theme";
 import { Text } from "./Text";
@@ -17,7 +17,7 @@ export function ErrorState({ message = "Something went wrong. Please try again."
   const theme = useAppTheme();
   return (
     <View style={styles.container}>
-      <AlertTriangle size={32} color={theme.danger} />
+      <TriangleAlert size={32} color={theme.danger} />
       <Text variant="body" color="secondary" align="center" style={styles.message}>
         {message}
       </Text>

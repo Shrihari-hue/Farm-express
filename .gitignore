@@ -21,3 +21,5 @@ ios/
 android/
 .eas/
 credentials.json
+*.zip
+bugreport-*

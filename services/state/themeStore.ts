@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { mmkvStorageAdapter } from "@services/storage/mmkv";
+import { keyValueStorageAdapter } from "@services/storage/keyValueStore";
 
 export type ThemePreference = "light" | "dark" | "system";
 
@@ -19,7 +19,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: "farm-express-theme",
-      storage: createJSONStorage(() => mmkvStorageAdapter),
+      storage: createJSONStorage(() => keyValueStorageAdapter),
     },
   ),
 );

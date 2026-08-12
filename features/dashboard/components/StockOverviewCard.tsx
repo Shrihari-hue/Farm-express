@@ -1,10 +1,9 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { AlertTriangle, Boxes } from "lucide-react-native";
+import { TriangleAlert, Boxes } from "lucide-react-native";
 import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing, radii } from "@constants/theme";
 import { Card, Skeleton, Text } from "@components/ui";
-import { formatNumber } from "@utils/formatters";
 import type { StockSummary } from "../api/dashboardApi";
 
 interface Props {
@@ -34,14 +33,16 @@ export function StockOverviewCard({ summary, isLoading }: Props) {
         <View style={styles.textCol}>
           <Text variant="bodyStrong">Current stock</Text>
           <Text variant="caption" color="secondary">
-            {formatNumber(summary.totalItems)} item{summary.totalItems === 1 ? "" : "s"} tracked
+            {hasLowStock
+              ? `${summary.lowStockCount} item${summary.lowStockCount === 1 ? "" : "s"} need restocking`
+              : "Stock levels look healthy"}
           </Text>
         </View>
       </View>
 
       {hasLowStock ? (
         <View style={[styles.alertRow, { backgroundColor: theme.mode === "dark" ? "#3A1917" : "#FBE7E6" }]}>
-          <AlertTriangle size={16} color={theme.danger} />
+          <TriangleAlert size={16} color={theme.danger} />
           <Text variant="caption" color="danger" style={styles.alertText}>
             {summary.lowStockCount} item{summary.lowStockCount === 1 ? "" : "s"} at or below the low-stock threshold
           </Text>

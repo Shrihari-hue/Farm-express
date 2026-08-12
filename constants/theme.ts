@@ -90,7 +90,13 @@ export const darkTheme = {
   skeleton: palette.neutral800,
 };
 
-export type AppTheme = typeof lightTheme;
+/**
+ * `mode` is intentionally widened to the full union here (rather than just
+ * inferring `typeof lightTheme`, which would lock it to the literal
+ * `"light"`) — every component compares `theme.mode === "dark"` at runtime,
+ * which only type-checks if both branches of the union are possible.
+ */
+export type AppTheme = Omit<typeof lightTheme, "mode"> & { mode: "light" | "dark" };
 
 export const spacing = {
   xxs: 4,

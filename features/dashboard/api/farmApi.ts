@@ -1,19 +1,17 @@
-import { supabase } from "@services/supabase/client";
-import type { Farm } from "@types/models";
+import { apiClient } from "@services/api/client";
+import type { Farm } from "@app-types/models";
 
 export async function getFarm(farmId: string): Promise<Farm | null> {
-  const { data, error } = await supabase.from("farms").select("*").eq("id", farmId).maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-
-  return {
-    id: data.id,
-    name: data.name,
-    ownerId: data.owner_id,
-    location: data.location,
-    phone: data.phone,
-    currency: data.currency,
-    language: data.language,
-    createdAt: data.created_at,
-  };
+  try {
+    const { farm } = await apiClient.get<{ farm: Farm }>(`/api/farms/${encodeURIComponent(farmId)}`);
+    return farm;
+  } catch (error) {
+    // Mirrors the old `.maybeSingle()` behaviour: a missing farm resolves to
+    // `null` instead of throwing. Any other error (network, auth, etc.)
+    // still propagates so TanStack Query surfaces a real error state.
+    if (error instanceof Error && /not found/i.test(error.message)) {
+      return null;
+    }
+    throw error;
+  }
 }

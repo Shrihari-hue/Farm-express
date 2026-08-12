@@ -6,7 +6,7 @@ import { spacing } from "@constants/theme";
 import { useAuthStore } from "@services/state/authStore";
 import { useUpdateWorker, useWorkerQuery } from "@features/labour/hooks/useWorkers";
 import { WorkerForm } from "@features/labour/components/WorkerForm";
-import { isLocalFileUri, uploadImageAsync } from "@services/supabase/storage";
+import { isLocalFileUri, uploadWorkerPhoto } from "@services/api/uploads";
 import type { WorkerFormValues } from "@features/labour/types";
 import type { WorkerFormSchema } from "@features/labour/schemas";
 
@@ -47,11 +47,7 @@ export default function EditWorkerScreen() {
       if (isLocalFileUri(values.photoUri)) {
         setIsUploadingPhoto(true);
         try {
-          photoUrl = await uploadImageAsync({
-            bucket: "worker-photos",
-            path: `${farmId}/${worker.id}.jpg`,
-            localUri: values.photoUri,
-          });
+          photoUrl = await uploadWorkerPhoto(worker.id, values.photoUri);
         } finally {
           setIsUploadingPhoto(false);
         }

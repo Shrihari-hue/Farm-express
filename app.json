@@ -13,14 +13,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.farmexpress.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Farm Express uses the camera to capture worker photos and expense bill images.",
         "NSPhotoLibraryUsageDescription": "Farm Express needs access to your photo library to attach worker photos and bill images.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification",
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -30,11 +35,12 @@
       },
       "package": "com.farmexpress.app",
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "RECEIVE_BOOT_COMPLETED",
-        "SCHEDULE_EXACT_ALARM"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -45,7 +51,6 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-sqlite",
       [
         "expo-notifications",
         {
@@ -77,8 +82,15 @@
         "origin": false
       },
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "57dd716a-972f-49ef-9bda-85678a11971a"
       }
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/84480b36-0157-4c9f-ace4-929c8c323887"
+    },
+    "owner": "shreeharii"
   }
 }

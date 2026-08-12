@@ -7,20 +7,15 @@
 export const APP_NAME = "Farm Express";
 
 export const ENV = {
-  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? "",
-  supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000",
   appEnv: process.env.EXPO_PUBLIC_APP_ENV ?? "development",
-  googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "",
-  googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? "",
-  googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
 } as const;
 
 /** India-only for v1 — matches the 10-digit phone validation in
- * `utils/validation.ts`. Revisit if the app expands beyond India. */
+ * `utils/validation.ts`. Used for displaying/entering worker phone numbers
+ * (not auth — login is email+password only). Revisit if the app expands
+ * beyond India. */
 export const PHONE_COUNTRY_CODE = "+91";
-
-export const OTP_LENGTH = 6;
-export const RESEND_OTP_SECONDS = 30;
 
 /** The three roles supported across the whole app. Kept in one place so
  * permission checks never rely on ad-hoc string comparisons. */

@@ -2,17 +2,16 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@components/*": ["components/*"],
-      "@features/*": ["features/*"],
-      "@services/*": ["services/*"],
-      "@hooks/*": ["hooks/*"],
-      "@constants/*": ["constants/*"],
-      "@utils/*": ["utils/*"],
-      "@types/*": ["types/*"],
-      "@database/*": ["database/*"]
+      "@components/*": ["./components/*"],
+      "@features/*": ["./features/*"],
+      "@services/*": ["./services/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@constants/*": ["./constants/*"],
+      "@utils/*": ["./utils/*"],
+      "@app-types/*": ["./types/*"],
+      "@database/*": ["./database/*"]
     }
   },
   "include": [
@@ -21,5 +20,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "server"]
 }

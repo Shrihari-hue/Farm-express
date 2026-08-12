@@ -27,7 +27,9 @@ export interface Farm {
 
 export interface AppUser {
   id: string;
-  farmId: string;
+  /** Null until the "complete profile" step runs — see `needsProfileCompletion`
+   * in `services/state/authStore.ts`. */
+  farmId: string | null;
   fullName: string;
   role: Role;
   email: string | null;

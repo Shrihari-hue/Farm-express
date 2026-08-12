@@ -1,60 +1,49 @@
 import { useEffect } from "react";
-import { getCurrentSession, subscribeToAuthChanges } from "@services/supabase/authService";
-import { fetchMyProfile } from "@services/supabase/profileService";
+import { getMe } from "@services/api/authService";
+import { clearToken, getToken } from "@services/api/tokenStorage";
 import { useAuthStore } from "@services/state/authStore";
 import { logger } from "@utils/logger";
 
 /**
- * Restores whatever session SecureStore has on cold start (fetching the
- * matching `public.users` profile row too, so `needsProfileCompletion` is
- * correct before the first render), then keeps both in sync for the rest of
- * the app's lifetime via `onAuthStateChange` — covering events the app
- * itself didn't initiate (token refresh, sign-out from another device,
- * session expiry).
+ * Restores whatever JWT SecureStore has on cold start and validates it
+ * against `GET /api/auth/me`. If the token is missing there's nothing to
+ * restore; if it's present but rejected (expired/invalid — a 401), it's
+ * cleared and treated as signed out. There's no live "subscribe to auth
+ * changes" equivalent for a custom JWT backend (that was Supabase-specific)
+ * — just this one-time bootstrap call.
  *
  * Call exactly once, from the root layout.
  */
 export function useSessionBootstrap() {
-  const setSession = useAuthStore((s) => s.setSession);
-  const setProfile = useAuthStore((s) => s.setProfile);
+  const setUser = useAuthStore((s) => s.setUser);
   const setHydrating = useAuthStore((s) => s.setHydrating);
   const isHydrating = useAuthStore((s) => s.isHydrating);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadSessionAndProfile = async () => {
-      const session = await getCurrentSession();
-      if (!isMounted) return;
-      setSession(session);
-      if (session) {
-        const profile = await fetchMyProfile(session.user.id);
-        if (isMounted) setProfile(profile);
+    const bootstrap = async () => {
+      const token = await getToken();
+      if (!token) return;
+
+      try {
+        const user = await getMe();
+        if (isMounted) setUser(user);
+      } catch (error) {
+        await clearToken();
+        if (isMounted) setUser(null);
+        logger.warn("Stored token was invalid/expired, signed out", error);
       }
     };
 
-    loadSessionAndProfile()
+    bootstrap()
       .catch((error) => logger.error("Failed to restore session", error))
       .finally(() => {
         if (isMounted) setHydrating(false);
       });
 
-    const unsubscribe = subscribeToAuthChanges((session) => {
-      setSession(session);
-      if (session) {
-        fetchMyProfile(session.user.id)
-          .then((profile) => {
-            if (isMounted) setProfile(profile);
-          })
-          .catch((error) => logger.error("Failed to refresh profile after auth event", error));
-      } else {
-        setProfile(null);
-      }
-    });
-
     return () => {
       isMounted = false;
-      unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

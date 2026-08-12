@@ -6,7 +6,7 @@ import { useAppTheme } from "@hooks/useAppTheme";
 import { spacing } from "@constants/theme";
 import { formatCurrency } from "@utils/formatters";
 import type { AttendanceStatus } from "@constants/config";
-import type { Attendance, Worker } from "@types/models";
+import type { Attendance, Worker } from "@app-types/models";
 import { StatusChip } from "./StatusChip";
 
 const ALL_STATUSES: AttendanceStatus[] = ["present", "absent", "half_day", "leave", "late"];
