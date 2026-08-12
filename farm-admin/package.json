@@ -1,0 +1,48 @@
+{
+  "name": "farm-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Desktop admin app for farm owners — manage crops, livestock, sales, expenses, staff and tasks.",
+  "author": "Shree",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "postinstall": "node -e \"if(process.platform==='darwin'){try{require('child_process').execSync('xattr -cr node_modules/electron/dist/Electron.app')}catch(e){}}\""
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.farmexpress.admin",
+    "productName": "Farm Admin",
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "output": "dist-electron"
+    },
+    "mac": {
+      "category": "public.app-category.business",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
